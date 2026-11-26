@@ -37,7 +37,30 @@ Review Hermes's installation scan and approve the install. Restart or reload ski
 
 **Catalog status:** prepared for submission, not yet listed. After a maintainer merges the catalog entry, installation by `hermes plugins install hermes-pages` becomes available. This README does not claim a current Marketplace listing.
 
-This is a portable skill-only package (`plugin.json` and `skills/`), not a Desktop renderer extension or a Python runtime plugin. It registers no tools, hooks, middleware, services or environment secrets. There is no install script and no install-time network/auth/deploy behavior in this package.
+This is a portable Agent Plugins v1 package (`plugin.json`, `skills/`, and an optional `desktop/plugin.js`). It registers no agent tools, hooks, middleware, services or environment secrets. There is no install script and no install-time network/auth/deploy behavior in this package.
+
+## Desktop sidebar
+
+On supported Hermes Desktop builds, the optional desktop half adds a **Pages** sidebar row (book icon), the `/pages` library page, and an **Open Pages** palette command. The library has a responsive card grid, bold titles, two-line summaries, dates and tag chips. It shows four recent pages first, then month groups, newest first. Search matches titles, tags, summaries and slugs. Refresh reloads the index, and React Query refetches stale data on window focus without a polling loop.
+
+1. Install this branch/package in Desktop. Unified-package installs are **opt-in**: turn on **Hermes Pages** in **Capabilities > Plugins**. A manually installed standalone `desktop-plugins/hermes-pages/plugin.js` uses the SDK's enabled-by-default disk-plugin behavior; an explicit previous off choice is always honored.
+2. Open **Pages**, use the command palette's **Open Pages** command, or **Settings > Plugins > Hermes Pages > Open Pages**. Custom sidebar replacements can hide the app's navigation rows; the palette command and settings entry remain available. The SDK's sidebar payload has no child-item API, so recent pages stay in the library rather than being injected into another plugin's sidebar.
+3. Choose your workspace through the app's folder picker. The grant and selected handle are remembered and revocable in **Capabilities > Plugins > Folder access**. Both `public/pages.json` and root `pages.json` layouts are supported, including older entries with `created` dates and `pages/<slug>.html` files. The folder is read-only from this plugin.
+4. Use **Settings** on the library page to change folders or optionally save a published base URL, for example `https://my-pages.pages.dev`. It is stored only in plugin-scoped storage. A root-site index may supply a safe relative `path`; otherwise the plugin looks for `<slug>.html`, then `pages/<slug>.html`.
+
+A click opens a full-width reading view inside the Hermes workspace using the SDK's `SandboxedFrame`. The local view inlines stylesheets and up to 24 images from the granted folder into a data document, strips scripts, and blocks external subresources and active scripts with a restrictive policy. This is a static reading view: page action bars, external images, audio, relative links and other interactive content may not work. With a saved base URL, **Published** shows the live page in the sandbox and **Open in browser** opens its address with the SDK OS helper. Some hosts refuse framing; the browser button is the fallback. An older Desktop without `SandboxedFrame` also offers the browser fallback. **Show file** reveals only a file found inside the granted workspace. It does not edit or open arbitrary filesystem paths.
+
+**File-access boundary:** Desktop refuses grants inside Hermes's own data directory. For Desktop browsing, choose a dedicated workspace outside `$HERMES_HOME`, for example `~/my-pages`. Do not move or overwrite an existing personal site just to use the utility. Kenneth's existing `C:/Users/Kenneth/hermes-pages` can be selected read-only; setup/render should still use a separate new workspace.
+
+**Desktop capabilities and disclosure:** contributes a route, sidebar row and palette commands; requests folder access only on a user gesture; reads the index, HTML and referenced local assets through `ctx.files`; stores its folder handle and optional site URL through `ctx.storage`; can reveal a resolved page path, copy a link or open a published URL only after a click. No `preview.executeJavaScript` capability, raw native bridge, shell process, polling timer, upload, telemetry, credential read or backend dependency. The Published view and browser fallback contact the saved site and whatever that site loads. Local-page hyperlinks may navigate the sandbox when clicked. No install-time network behavior is added.
+
+The layout follows Hermes theme variables. The standalone file is plain ESM with only SDK and React imports, no JSX or build step. The desktop half is discovered by its conventional `desktop/plugin.js` path, like other Portable Agent Plugins v1 packages; no nonstandard `desktop` manifest field is required.
+
+Desktop verification for this branch: static checks and package validation passed. An SDK-mock Node harness read a real root-layout index (46 entries, all 46 files found) without changing it, and a freshly rendered scratch `public/` workspace. A background-only capture of the actual Windows Hermes Desktop confirmed the plugin enabled, its settings page rendered, and `/pages` displayed the first-run folder chooser. A populated library and inline reader have not yet been verified in-app because the user must grant the folder. The installed Monograph skin hides the core sidebar navigation group, so its Pages row was not visible there; no other plugin was modified to force it into view.
+
+![Actual Hermes Desktop first-run Pages view](docs/desktop-first-run.png)
+
+This is a cropped capture of the real Desktop route before folder access is granted, not a library mockup.
 
 ## Use without Hermes
 
@@ -155,6 +178,7 @@ The actual local check passed for desktop content, 700px reading width, theme to
 
 ```text
 plugin.json
+desktop/plugin.js         Optional Desktop library, route, sidebar and commands
 skills/hermes-pages/
   SKILL.md
   scripts/hermes_pages.py
