@@ -3,6 +3,7 @@
 from __future__ import annotations
 import argparse
 from contextlib import contextmanager
+import datetime
 import hashlib
 import html
 import json
@@ -96,10 +97,30 @@ def markdown(source):
     return '\n'.join(output)
 
 
-def template(title, summary, content, wide=False):
-    values = {'TITLE': escaped(title), 'SUMMARY': escaped(summary), 'CONTENT': content, 'WIDE': 'wide' if wide else ''}
+def pretty_date(value):
+    try:
+        d = datetime.date.fromisoformat(value)
+        return f'{d:%b} {d.day}, {d.year}'
+    except ValueError:
+        return value
+
+
+def clean_tags(tags):
+    out = []
+    for t in tags or ():
+        t = str(t).strip()
+        if t and len(t) <= 32 and t not in out:
+            out.append(t)
+    return out[:8]
+
+
+def template(title, summary, content, wide=False, date='', tags=()):
+    meta = ''
+    if date or tags:
+        meta = '<div class="meta">' + (f'<time datetime="{escaped(date)}">{escaped(pretty_date(date))}</time>' if date else '') + ''.join(f'<span class="tag">{escaped(t)}</span>' for t in tags) + '</div>'
+    values = {'TITLE': escaped(title), 'SUMMARY': escaped(summary), 'CONTENT': content, 'WIDE': 'wide' if wide else '', 'META': meta}
     # Single pass: user content containing template tokens is never substituted again.
-    return re.sub(r'\{\{(TITLE|SUMMARY|CONTENT|WIDE)\}\}', lambda m: values[m[1]], (ASSETS / 'response.html').read_text(encoding='utf-8'))
+    return re.sub(r'\{\{(TITLE|SUMMARY|CONTENT|WIDE|META)\}\}', lambda m: values[m[1]], (ASSETS / 'response.html').read_text(encoding='utf-8'))
 
 
 def digest(data):
@@ -192,7 +213,7 @@ def setup(root):
             changes['public/404.html'] = template('Page not found', 'This page may have moved or been removed.', '<p><a href="index.html">Return to the library</a></p>').encode()
         if not data['pages']:
             data['pages'] = [{'slug': 'welcome', 'title': 'A better home for your answers', 'summary': 'From a useful thought to a page worth keeping.'}]
-            changes['public/welcome.html'] = template(data['pages'][0]['title'], data['pages'][0]['summary'], (ASSETS / 'sample.html').read_text(encoding='utf-8')).encode()
+            changes['public/welcome.html'] = template(data['pages'][0]['title'], data['pages'][0]['summary'], (ASSETS / 'sample.html').read_text(encoding='utf-8'), False, '2026-01-15', ['guide', 'sample']).encode()
         # Re-running setup does not replace customized assets or reset existing pages.
         for name, payload in index_changes(data).items():
             if name not in data['managed']:
@@ -201,15 +222,19 @@ def setup(root):
     return root / 'public' / 'welcome.html'
 
 
-def render(root, source, title, summary='', slug=None, html_input=False, wide=False, replace=False):
+def render(root, source, title, summary='', slug=None, html_input=False, wide=False, replace=False, tags=(), date=None):
+    tags = clean_tags(tags)
+    if date:
+        datetime.date.fromisoformat(date)  # ValueError on anything but YYYY-MM-DD
     slug = slug or re.sub('[^a-z0-9]+', '-', title.lower()).strip('-')[:64]
     if not slug or not re.fullmatch('[a-z0-9][a-z0-9-]{0,63}', slug) or slug in ('index', '404'):
         raise ValueError('Slug must be 1-64 lowercase ASCII letters, digits or hyphens; index and 404 are reserved')
     with locked(root):
         data = state(root)
-        entry = {'slug': slug, 'title': title, 'summary': summary}
         existing = next((p for p in data['pages'] if p['slug'] == slug), None)
-        page = template(title, summary, source if html_input else markdown(source), wide).encode()
+        date = date or (existing or {}).get('date') or datetime.date.today().isoformat()
+        entry = {'slug': slug, 'title': title, 'summary': summary, 'date': date, 'tags': tags}
+        page = template(title, summary, source if html_input else markdown(source), wide, date, tags).encode()
         name = f'public/{slug}.html'
         if existing and not replace:
             if existing == entry and safe_path(root, name).read_bytes() == page:
@@ -276,6 +301,8 @@ def parser():
     r.add_argument('--html', action='store_true', help='Trusted HTML, not sanitized')
     r.add_argument('--wide', action='store_true')
     r.add_argument('--replace', action='store_true')
+    r.add_argument('--tags', default='', help='Comma-separated tags shown as chips')
+    r.add_argument('--date', help='YYYY-MM-DD shown under the title (default today)')
     d = sub.add_parser('publish', help='Explicitly upload managed public assets with Wrangler')
     d.add_argument('--project', required=True)
     d.add_argument('--wrangler', default='wrangler')
@@ -295,7 +322,7 @@ def main(argv=None):
             print('1. Choose a NEW dedicated static Pages project and a free Cloudflare account.\n2. Use an existing Wrangler executable or manually install Wrangler in a local tools directory.\n3. In your own interactive terminal: wrangler login (Cloudflare OAuth). Never paste tokens into chat.\n4. wrangler pages project create YOUR-NEW-PROJECT --production-branch main\n5. Review every page in this workspace. Public URLs are not access control.\n6. Run publish --project YOUR-NEW-PROJECT --dry-run, then publish with --confirm-public.\n7. Fetch the exact URL Wrangler reports before sharing. A custom domain is optional and may cost money.\nNo DNS, account settings or paid resources are changed by setup/render.')
         elif args.action == 'render':
             source = sys.stdin.read() if args.input == '-' else Path(args.input).read_text(encoding='utf-8-sig')
-            print(render(root, source, args.title, args.summary, args.slug, args.html, args.wide, args.replace))
+            print(render(root, source, args.title, args.summary, args.slug, args.html, args.wide, args.replace, args.tags.split(','), args.date))
         elif args.action == 'publish':
             if not args.dry_run and not args.confirm_public:
                 raise ValueError('Publishing makes ALL managed pages and the library public. Review them and pass --confirm-public')

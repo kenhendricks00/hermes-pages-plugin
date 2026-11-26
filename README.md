@@ -46,7 +46,7 @@ Clone the public repository or use the script in the installed skill. These exam
 ```sh
 python skills/hermes-pages/scripts/hermes_pages.py --workspace ./my-pages setup
 python skills/hermes-pages/scripts/hermes_pages.py --workspace ./my-pages render note.md \
-  --title "A useful idea" --summary "The short version, before the detail." --slug useful-idea
+  --title "A useful idea" --summary "The short version, before the detail." --slug useful-idea --tags notes,ideas
 ```
 
 Open `my-pages/public/useful-idea.html` directly in your browser. All page assets use relative paths so local file viewing works. No network is needed for setup or rendering. The default workspace, if omitted, is `$HERMES_HOME/hermes-pages`, or `~/.hermes/hermes-pages` without that variable. No Hermes settings are changed.

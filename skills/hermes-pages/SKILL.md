@@ -23,7 +23,7 @@ Resolve `scripts/hermes_pages.py` relative to this installed skill directory. Qu
 1. Choose a dedicated output workspace. The CLI defaults to `$HERMES_HOME/hermes-pages`, falling back to `~/.hermes/hermes-pages`. Prefer an explicit `--workspace` for clarity. Do not change another profile.
 2. `python <skill>/scripts/hermes_pages.py --workspace <workspace> setup`
 3. Write approved content to a UTF-8 file outside the public directory.
-4. `python <skill>/scripts/hermes_pages.py --workspace <workspace> render <input.md> --title "Title" --summary "One or two sentences" --slug useful-note`
+4. `python <skill>/scripts/hermes_pages.py --workspace <workspace> render <input.md> --title "Title" --summary "One or two sentences" --slug useful-note --tags study,notes` (`--date YYYY-MM-DD` optional; defaults to today and is kept on re-render)
 5. Open the output locally and inspect it. Use `--wide` only for dashboards. Use `--replace` for an intentional existing managed-page update; exact repeats are idempotent. Never delete safety locks just to bypass an active process.
 
 Markdown supports headings, one-line paragraphs, flat ordered/unordered lists, blockquotes, fenced code, basic links, bold, inline code and simple pipe tables. Raw HTML in Markdown is escaped. For cards and callouts, use `--html` with user-authorized HTML. HTML is trusted, NOT sanitized; never ingest untrusted remote HTML. Metadata is escaped and template substitution is single-pass. Default Cloudflare headers restrict scripts, embeds and outbound connections, but local file viewing has no HTTP CSP. Do not treat CSP as an HTML sanitizer.

@@ -58,6 +58,31 @@ class RenderTests(unittest.TestCase):
         self.assertIn('<body class="wide">', pages.template('t', 's', 'c', True))
 
 
+class MetaTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name) / 'workspace'
+        pages.setup(self.root)
+
+    def test_date_and_tags_render_escaped(self):
+        out = pages.render(self.root, 'Body', 'Meta page', tags=['study', '<b>x</b>', 'study', ' '], date='2026-11-17')
+        html = out.read_text(encoding='utf-8')
+        self.assertIn('<time datetime="2026-11-17">Nov 17, 2026</time>', html)
+        self.assertEqual(html.count('<span class="tag">study</span>'), 1)
+        self.assertIn('&lt;b&gt;x&lt;/b&gt;', html)
+        self.assertNotIn('<b>x</b>', html)
+
+    def test_bad_date_rejected(self):
+        with self.assertRaises(ValueError):
+            pages.render(self.root, 'Body', 'Bad date', date='"><script>')
+
+    def test_rerender_keeps_original_date(self):
+        pages.render(self.root, 'Body', 'Kept', date='2026-01-02')
+        out = pages.render(self.root, 'Body', 'Kept')
+        self.assertIn('2026-01-02', out.read_text(encoding='utf-8'))
+
+
 class WorkspaceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='hp-test-')
