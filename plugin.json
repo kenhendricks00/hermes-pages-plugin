@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "hermes-pages",
+  "version": "1.0.0",
+  "description": "Turn useful answers into quiet, responsive pages. Offline rendering, explicit publishing, and guided free Cloudflare Pages hosting. No automatic uploads or required paid services.",
+  "author": {"name": "Kenneth Hendricks", "url": "https://github.com/kenhendricks00"},
+  "homepage": "https://github.com/kenhendricks00/hermes-pages-plugin",
+  "repository": "https://github.com/kenhendricks00/hermes-pages-plugin",
+  "license": "MIT",
+  "keywords": ["pages", "publishing", "markdown", "cloudflare", "offline"]
+}
