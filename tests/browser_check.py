@@ -61,7 +61,7 @@ def main():
                 mobile.goto(url)
                 mobile.wait_for_load_state('networkidle')
                 assert mobile.locator('#listen').is_disabled()
-                assert mobile.locator('#listen').inner_text() == 'Listen unavailable'
+                assert mobile.locator('#listen').text_content().strip() == 'Listen unavailable'
                 assert mobile.evaluate('document.documentElement.scrollWidth <= innerWidth')
                 mobile.screenshot(path=str(docs / 'phone.png'), full_page=True)
                 brand = browser.new_page(viewport={'width': 1200, 'height': 600}, device_scale_factor=1)
