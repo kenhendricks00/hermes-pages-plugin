@@ -64,13 +64,10 @@ def main():
                 assert mobile.locator('#listen').text_content().strip() == 'Listen unavailable'
                 assert mobile.evaluate('document.documentElement.scrollWidth <= innerWidth')
                 mobile.screenshot(path=str(docs / 'phone.png'), full_page=True)
-                brand = browser.new_page(viewport={'width': 1200, 'height': 600}, device_scale_factor=1)
-                brand.goto((docs / 'banner.svg').as_uri())
-                brand.screenshot(path=str(docs / 'banner.png'))
                 assert not errors, errors
                 browser.close()
                 print('LOCAL Edge headless: content, 700px column, theme toggle/persistence, copy fallback, print action, print CSS, actual PDF bytes, 390px no overflow, unsupported speech fallback, zero page errors: PASS')
-                print('Screenshots: docs/light.png, docs/dark.png, docs/phone.png, docs/banner.png')
+                print('Screenshots: docs/light.png, docs/dark.png, docs/phone.png (banner: tests/make_assets.py)')
         finally:
             server.shutdown()
             server.server_close()
