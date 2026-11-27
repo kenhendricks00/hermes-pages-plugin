@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>Hermes Pages</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e2129"/>
+      <stop offset="1" stop-color="#121419"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- page behind -->
+  <path d="M112 152 v240 a20 20 0 0 0 20 20 h196" fill="none" stroke="#6b7280" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- page with folded corner -->
+  <path d="M168 92 h146 l66 66 v192 a18 18 0 0 1 -18 18 h-194 a18 18 0 0 1 -18 -18 v-240 a18 18 0 0 1 18 -18 z" fill="#e8eaef"/>
+  <path d="M314 92 v48 a18 18 0 0 0 18 18 h48 z" fill="#c3c8d1"/>
+  <!-- title in accent blue, body lines muted -->
+  <rect x="190" y="170" width="112" height="18" rx="9" fill="#60a5fa"/>
+  <rect x="190" y="214" width="164" height="12" rx="6" fill="#9aa1ae"/>
+  <rect x="190" y="244" width="164" height="12" rx="6" fill="#9aa1ae"/>
+  <rect x="190" y="274" width="164" height="12" rx="6" fill="#9aa1ae"/>
+  <rect x="190" y="304" width="104" height="12" rx="6" fill="#9aa1ae"/>
+</svg>
